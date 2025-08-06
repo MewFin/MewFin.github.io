@@ -9,6 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- 引入 Chart.js 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         :root {
             --bg-color: #f4f7f9;
@@ -48,7 +51,7 @@
             font-family: 'Inter', 'Noto Sans SC', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            line-height: 1.8; /* Increased line-height for readability */
+            line-height: 1.8;
             transition: background-color 0.3s, color 0.3s;
         }
 
@@ -158,6 +161,35 @@
             border-radius: 12px;
             margin-bottom: 2rem;
         }
+        
+        .chart-container {
+            width: 100%;
+            margin: 2.5rem 0;
+            padding: 1.5rem;
+            background-color: var(--bg-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: var(--bg-color);
+            font-weight: 700;
+        }
+        .data-table tr:nth-child(even) {
+            background-color: var(--bg-color);
+        }
+
 
         .article-body h2 {
             font-size: 1.8rem;
@@ -221,26 +253,7 @@
         .popular-posts-list a:hover, .categories-list a:hover {
             color: var(--primary-color);
         }
-        .subscribe-form input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            margin-bottom: 10px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-        }
-        .subscribe-form button {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            background-color: var(--primary-color);
-            color: #fff;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 700;
-        }
-
+        
         /* --- Footer --- */
         .site-footer {
             background-color: var(--card-bg-color);
@@ -250,23 +263,7 @@
             text-align: center;
             color: var(--text-muted);
         }
-        .footer-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-        .social-links a {
-            margin: 0 10px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 1.5rem;
-            transition: color 0.3s;
-        }
-        .social-links a:hover {
-            color: var(--primary-color);
-        }
-
+        
         /* --- Responsive Design --- */
         @media (max-width: 992px) {
             .main-layout {
@@ -293,9 +290,9 @@
 
     <header class="site-header">
         <div class="container header-content">
-            <a href="../index.html" class="site-title">Enceladus财经洞察</a>
+            <a href="./index.html" class="site-title">Enceladus财经洞察</a>
             <nav class="site-nav">
-                <a href="../index.html">首页</a>
+                <a href="./index.html">首页</a>
                 <a href="#">市场分析</a>
                 <a href="#">投资策略</a>
                 <a href="#">宏观经济</a>
@@ -318,37 +315,112 @@
                 <img src="https://placehold.co/800x450/ffab00/ffffff?text=Education+Trends" alt="教育趋势概念图" class="article-featured-image">
 
                 <div class="article-body">
-                    <p>近年来，全球范围内的人口结构正在发生深刻而持久的变化。其中，人口出生率的持续下降和总人口的净减少趋势，正如同一个缓慢移动但影响深远的巨浪，开始冲击社会经济的各个层面。教育行业，作为与人口数量和结构关联最为紧密的领域之一，首当其冲地感受到了这股寒意。</p>
+                    <p>近年来，我国的人口结构正在发生深刻而持久的变化。其中，人口出生率的持续下降和总人口的净减少趋势，正如同一个缓慢移动但影响深远的巨浪，开始冲击社会经济的各个层面。教育行业，作为与人口数量和结构关联最为紧密的领域之一，首当其冲地感受到了这股寒意。</p>
                     
                     <blockquote>
                         “人口是教育的基础，当基础发生动摇时，建立在其上的整个大厦都将面临重构的挑战。”
                     </blockquote>
 
-                    <p>本文将从多个维度深入探讨人口净减少对教育行业带来的深远影响，并分析行业可能的发展方向与应对策略。</p>
+                    <p>根据最新数据，2024年末，内地总人口为14亿零828万人，比上年末减少139万人。在校学生总规模为2.85亿人，也比上年减少了441.6万人。这一下降趋势在基础教育阶段尤为明显。</p>
+                    
+                    <table class="data-table">
+                        <caption>2024年末学生情况概览 (单位：万人)</caption>
+                        <thead>
+                            <tr>
+                                <th>教育阶段</th>
+                                <th>在校生数</th>
+                                <th>占总人口比</th>
+                                <th>比上年增减</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>幼儿园</td>
+                                <td>3,584</td>
+                                <td>2.54%</td>
+                                <td>-509</td>
+                            </tr>
+                            <tr>
+                                <td>小学</td>
+                                <td>10,584</td>
+                                <td>7.52%</td>
+                                <td>-252</td>
+                            </tr>
+                             <tr>
+                                <td>初中</td>
+                                <td>5,386</td>
+                                <td>3.82%</td>
+                                <td>+142</td>
+                            </tr>
+                            <tr>
+                                <td>高中</td>
+                                <td>2,922</td>
+                                <td>2.07%</td>
+                                <td>+118</td>
+                            </tr>
+                            <tr>
+                                <td>中职</td>
+                                <td>1,659</td>
+                                <td>1.18%</td>
+                                <td>-79</td>
+                            </tr>
+                            <tr>
+                                <td>本专科</td>
+                                <td>3,891</td>
+                                <td>2.76%</td>
+                                <td>+116</td>
+                            </tr>
+                            <tr>
+                                <td>研究生</td>
+                                <td>410</td>
+                                <td>0.29%</td>
+                                <td>+22</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                    <h2>一、生源危机：从幼儿园到高等教育的连锁反应</h2>
-                    <p>最直接、最显性的影响无疑是生源的减少。这场“招生荒”正沿着年龄金字塔自下而上传导：</p>
-                    <ul>
-                        <li><strong>学前教育与义务教育：</strong> 幼儿园和小学是最先感受到压力的环节。许多地区的幼儿园已经出现“一孩难求”的局面，部分学校面临合并甚至关闭的风险。</li>
-                        <li><strong>高等教育：</strong> 随着时间推移，生源危机将不可避免地传导至高等教育。大学，特别是排名相对靠后或专业特色不明显的院校，将面临前所未有的招生压力。</li>
-                    </ul>
+                    <h2>一、生源危机：从幼儿园到小学的连锁反应</h2>
+                    <p>最直接、最显性的影响无疑是生源的减少。这场“招生荒”正沿着年龄金字塔自下而上传导。</p>
+                    
+                    <h3>学前教育的“雪崩”
+
+                    </h3>
+                    <p>幼儿园是第一个感受到寒意的领域。下面的互动图表直观地展示了在园人数从高峰到断崖式下跌的完整过程。过去5年幼儿园在园幼儿情况：2020年末4818万人，2021年末4805万人，2022年4628万人，2023年末4093万人，2024年末3584万人。过去三年降幅25%。假设二岁半入园和三岁半入园的人数各占50%，2025年是2021年和2022年出生的平均人数（1009万人）进入幼儿园而2018年和2019年出生的平均人数（1494万人）开始离园进入小学，在园幼儿又是～485万人规模的降幅。预期2027年末在园幼儿可能在2500万人左右相对稳定，比2025年再下降～600万人，又是五分之一的降幅。</p>
+                    
+                    <div class="chart-container">
+                        <canvas id="kindergartenChart"></canvas>
+                    </div>
+
+                    <h3>冲击波蔓延：小学正在上演同样的故事
+
+                    </h3>
+                    <p>幼儿园发生的事情，正在小学上演。2023年末，小学生总量10836万人，是一个峰值。2024年减少252万人至10584万人。6年级学生毕业人数1857万人，对应2018年一年级招生（1867万人）和2012年出生人口（1935万人）；2024年一年级新生1617万人（对应2018年出生1527万人）。两者之差=1867-1617=250万人，构成小学人数减少的主要部分。2024年一年级招生1617万人，比2023年的1878万人，减少261万人，降幅13.9%，降幅和绝对值都很大。同样逻辑可以推演2025年小学在校生数量变化。2019年小学招生1869万人在2025年毕业，同样2018年和2019年出生人数的平均值（1494万人）主要在2025年进入小学，两者差额375万人，减少数量扩大五成。</p>
+                    <p>同样逻辑：2020年小学招生1808万人在2026年毕业，而2019年和2020年出生人口的平均值1332万人，差额476万人，构成2026年小学在校生的降幅。2021年小学招生1783万人在2027年毕业，而2020年和2021年出生人口的平均值1131万人，差额652万人，构成2027年的小学在校生降幅。2022年小学招生1701万人在2028年毕业，而2021年和2022年出生人口的平均值1009万人，差额692万人，构成2028年小学在校生降幅。2023年小学招生1878万人在2029年毕业，而2022年和2023年出生人口的平均值929万人，差额949万人，构成2029年小学生降幅。2024年小学招生1617万人在2030年毕业，而2023年和2024年出生人口的平均值928万人，差额689万人，构成2030年小学生降幅。把上述差额加总为3833万人，即2030年小学生在校规模为6751万人，比2024年规模下降36.21%，降幅高达三分之一。若展望2035年，小学生数量可能在5500万人左右，五年时间再下降1200万人。</p>
+                    <div class="chart-container">
+                        <canvas id="primarySchoolChart"></canvas>
+                    </div>
 
                     <h2>二、资源重配与结构调整</h2>
                     <p>生源的减少将倒逼教育系统进行大规模的资源重新配置和结构性调整。过去以“扩张”为主题的发展模式将难以为继，取而代之的将是“提质”和“转型”。教师编制、学校建设、教育经费的分配逻辑都将面临重塑。对于从业者而言，这意味着竞争将更加激烈，对教师的综合能力要求也将更高。</p>
 
                     <h2>三、新的机遇：终身教育与职业培训的崛起</h2>
-                    <p>然而，危机中也孕育着新的机遇。随着社会对劳动力技能要求的不断提升和知识更新速度的加快，**终身教育**和**职业技能再培训**的需求正在急剧增长。教育行业的核心客群，将逐渐从传统的适龄学生，扩展到更广泛的成年人群体。这为教育机构开辟了全新的市场空间，例如：</p>
+                    <p>然而，危机中也孕育着新的机遇。随着社会对劳动力技能要求的不断提升和知识更新速度的加快，终身教育和职业技能再培训的需求正在急剧增长。教育行业的核心客群，将逐渐从传统的适龄学生，扩展到更广泛的成年人群体。这为教育机构开辟了全新的市场空间，例如：</p>
                     <ul>
                         <li>针对中老年人的兴趣课程和数字技能培训。</li>
                         <li>面向企业员工的技能提升和转型培训项目。</li>
                         <li>线上化、碎片化、个性化的成人学习平台。</li>
                     </ul>
-                    <p>总而言之，人口净减少虽然给传统教育模式带来了严峻挑战，但也催生了行业向更高质量、更多元化、更广覆盖面转型的历史性机遇。能否抓住这一机遇，将是决定未来教育机构生存与发展的关键。</p>
+                    <p>人口净减少虽然给传统教育模式带来了严峻挑战，但也催生了行业向更高质量、更多元化、更广覆盖面转型的结构性机遇。能否抓住这一机遇，将是决定未来教育机构生存与发展的关键。</p>
                 </div>
             </article>
         </main>
 
-            <!-- Popular Posts Widget -->
+        <aside class="sidebar">
+             <div class="widget about-widget">
+                <h3 class="widget-title">关于博主</h3>
+                <img src="https://placehold.co/80x80/7950f2/ffffff?text=E" alt="博主头像">
+                <p>Enceladus，十年从业经验的金融分析师，专注于宏观经济和长期价值投资。希望在这里分享我的见解与思考。</p>
+            </div>
             <div class="widget popular-posts-widget">
                 <h3 class="widget-title">热门文章</h3>
                 <ul class="popular-posts-list">
@@ -358,11 +430,18 @@
                     <li><a href="#">地缘政治如何影响大宗商品价格？</a></li>
                 </ul>
             </div>
-            
-            <!-- Subscribe Widget -->
+            <div class="widget categories-widget">
+                <h3 class="widget-title">文章分类</h3>
+                <ul class="categories-list">
+                    <li><a href="#">市场分析 (12)</a></li>
+                    <li><a href="#">投资策略 (8)</a></li>
+                    <li><a href="#">宏观经济 (15)</a></li>
+                    <li><a href="#">读书笔记 (5)</a></li>
+                </ul>
+            </div>
             <div class="widget subscribe-widget">
                 <h3 class="widget-title">订阅我们</h3>
-                <p><a href="https://www.youtube.com/@MeowFin_Global">https://www.youtube.com/@MeowFin_Global</a></p>
+                <p><a href="https://www.youtube.com/@MeowFin_Global" target="_blank" rel="noopener noreferrer">https://www.youtube.com/@MeowFin_Global</a></p>
             </div>
         </aside>
     </div>
@@ -376,6 +455,7 @@
 
     <script>
         (function() {
+            // --- 主题切换逻辑 ---
             const themeToggle = document.getElementById('theme-toggle');
             const body = document.body;
             const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/></svg>`;
@@ -391,7 +471,6 @@
                 }
             };
 
-            // Immediately set theme on page load
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
@@ -406,6 +485,71 @@
                     console.error("无法访问 localStorage:", e);
                 }
             });
+
+            // --- 图表绘制逻辑 ---
+            function createChart(canvasId, chartType, labels, data, chartLabel, titleText) {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) return;
+
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                const textColor = isDarkMode ? '#e0e0e0' : '#333';
+                const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                const barBgColor = isDarkMode ? 'rgba(77, 171, 247, 0.7)' : 'rgba(0, 82, 204, 0.7)';
+                const barBorderColor = isDarkMode ? '#4dabf7' : '#0052cc';
+
+                new Chart(ctx, {
+                    type: chartType,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: chartLabel,
+                            data: data,
+                            backgroundColor: barBgColor,
+                            borderColor: barBorderColor,
+                            borderWidth: 1,
+                            borderRadius: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: titleText,
+                                font: { size: 18, family: "'Inter', 'Noto Sans SC', sans-serif" },
+                                color: textColor,
+                                padding: { bottom: 20 }
+                            },
+                            legend: {
+                                labels: { color: textColor }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: textColor },
+                                grid: { color: gridColor }
+                            },
+                            x: {
+                                ticks: { color: textColor },
+                                grid: { color: gridColor }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 幼儿园图表数据
+            const kindergartenLabels = ['2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025(E)', '2026(E)', '2027(E)'];
+            const kindergartenData = [4656.42, 4713.88, 4818.26, 4805.21, 4627.55, 4092.98, 3583.99, 3098.99, 2695.49, 2492.49];
+            createChart('kindergartenChart', 'bar', kindergartenLabels, kindergartenData, '在园人数 (万)', '幼儿园在园人数变化趋势 (万人)');
+
+            // 小学生图表数据
+            const primarySchoolLabels = ['2023', '2024', '2025(E)', '2026(E)', '2027(E)', '2028(E)', '2029(E)', '2030(E)'];
+            const primarySchoolData = [10836, 10584, 10209, 9733, 9081, 8389, 7440, 6751];
+            createChart('primarySchoolChart', 'bar', primarySchoolLabels, primarySchoolData, '在校生数 (万)', '小学生在校人数变化预测 (万人)');
+            
         })();
     </script>
 

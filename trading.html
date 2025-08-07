@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Trading Simulator</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- ApexCharts for the candlestick chart -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    
+    <!-- Google Fonts for a clean look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom styles to complement Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark gray background */
+            color: #F9FAFB; /* Light gray text */
+        }
+        .btn {
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-buy {
+            background-color: #10B981; /* Green */
+            color: white;
+        }
+        .btn-buy:hover {
+            background-color: #059669;
+        }
+        .btn-sell {
+            background-color: #EF4444; /* Red */
+            color: white;
+        }
+        .btn-sell:hover {
+            background-color: #DC2626;
+        }
+        .btn-hold {
+            background-color: #3B82F6; /* Blue */
+            color: white;
+        }
+        .btn-hold:hover {
+            background-color: #2563EB;
+        }
+        .btn:disabled {
+            background-color: #4B5563; /* Gray */
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        /* Custom tooltip for ApexCharts */
+        .apexcharts-tooltip {
+            background: #1F2937;
+            color: #F9FAFB;
+            border: 1px solid #374151;
+        }
+        .apexcharts-tooltip-title {
+            background: #374151;
+            border-bottom: 1px solid #4B5563;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+
+    <div class="w-full max-w-6xl mx-auto bg-gray-900 rounded-2xl shadow-2xl p-4 md:p-8 space-y-6">
+        
+        <!-- Header Section -->
+        <header class="text-center border-b border-gray-700 pb-4">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                Stock Trading Simulator
+            </h1>
+            <p class="text-gray-400 mt-2">Buy low, sell high. Can you beat the market?</p>
+        </header>
+
+        <!-- Main Content: Chart and Controls -->
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Chart Area -->
+            <div id="chart-container" class="lg:col-span-2 bg-gray-800 p-4 rounded-xl shadow-lg">
+                <div id="chart"></div>
+            </div>
+
+            <!-- Controls and Portfolio -->
+            <div class="flex flex-col justify-between bg-gray-800 p-6 rounded-xl shadow-lg space-y-6">
+                
+                <!-- Portfolio Display -->
+                <div class="space-y-4 text-center">
+                    <div>
+                        <h2 class="text-lg font-medium text-gray-400">Cash</h2>
+                        <p id="money-counter" class="text-4xl font-bold text-green-400">$10,000.00</p>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-medium text-gray-400">Shares Held</h2>
+                        <p id="shares-counter" class="text-4xl font-bold text-blue-400">0</p>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-medium text-gray-400">Portfolio Value</h2>
+                        <p id="portfolio-value" class="text-4xl font-bold text-white">$10,000.00</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-3 gap-4">
+                    <button id="buy-button" class="btn btn-buy w-full py-4 rounded-lg text-xl font-bold">
+                        BUY
+                    </button>
+                    <button id="hold-button" class="btn btn-hold w-full py-4 rounded-lg text-xl font-bold">
+                        HOLD
+                    </button>
+                    <button id="sell-button" class="btn btn-sell w-full py-4 rounded-lg text-xl font-bold" disabled>
+                        SELL
+                    </button>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const INITIAL_MONEY = 10000;
+        const INITIAL_PRICE = 100;
+        const INITIAL_DATA_POINTS = 50;
+        
+        // Breit-Wigner distribution parameters
+        const M = 0; // Center of the peak (mean of change)
+        const GAMMA = 2.5; // Width of the peak (volatility)
+
+        // --- STATE VARIABLES ---
+        let money = INITIAL_MONEY;
+        let shares = 0;
+        let currentPrice = INITIAL_PRICE;
+        let portfolioValue = INITIAL_MONEY;
+        let chartData = [];
+
+        // --- DOM ELEMENTS ---
+        const moneyCounter = document.getElementById('money-counter');
+        const sharesCounter = document.getElementById('shares-counter');
+        const portfolioValueDisplay = document.getElementById('portfolio-value');
+        const buyButton = document.getElementById('buy-button');
+        const holdButton = document.getElementById('hold-button');
+        const sellButton = document.getElementById('sell-button');
+
+        // --- CHART SETUP (APEXCHARTS) ---
+        const chartOptions = {
+            series: [{
+                name: 'Price',
+                data: []
+            }],
+            chart: {
+                type: 'candlestick',
+                height: 450,
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 500,
+                },
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true,
+                        selection: true,
+                        zoom: true,
+                        zoomin: true,
+                        zoomout: true,
+                        pan: true,
+                    }
+                },
+                foreColor: '#9CA3AF' // Text color for axes
+            },
+            title: {
+                text: 'Stock Price History',
+                align: 'left',
+                style: {
+                    fontSize: '18px',
+                    color: '#F9FAFB'
+                }
+            },
+            xaxis: {
+                type: 'datetime',
+                labels: {
+                    style: {
+                        colors: '#9CA3AF',
+                    },
+                },
+                axisBorder: { show: false },
+                axisTicks: { color: '#374151' }
+            },
+            yaxis: {
+                tooltip: {
+                    enabled: true
+                },
+                labels: {
+                    formatter: (value) => `$${value.toFixed(2)}`,
+                    style: {
+                        colors: '#9CA3AF',
+                    },
+                },
+                axisBorder: { show: false },
+            },
+            grid: {
+                borderColor: '#374151',
+                strokeDashArray: 4
+            },
+            tooltip: {
+                theme: 'dark'
+            },
+            plotOptions: {
+                candlestick: {
+                    colors: {
+                        upward: '#10B981', // Green for price up
+                        downward: '#EF4444' // Red for price down
+                    }
+                }
+            }
+        };
+
+        const chart = new ApexCharts(document.querySelector("#chart"), chartOptions);
+        chart.render();
+
+        // --- CORE LOGIC ---
+
+        /**
+         * Generates a random number following a Breit-Wigner (Cauchy-Lorentz) distribution.
+         * This creates more "peaky" and volatile price changes than a normal distribution.
+         * @returns {number} A random number representing the price change.
+         */
+        function breitWignerRandom() {
+            // Use the inverse transform sampling method for a Cauchy-Lorentz distribution
+            const u = (Math.random() - 0.5)*0.5; // Uniform random number in [-0.5, 0.5]
+            return M + GAMMA * Math.tan(Math.PI * u);
+        }
+
+        /**
+         * Generates the next candlestick data point.
+         * @param {number} lastClose - The closing price of the previous candle.
+         * @param {Date} time - The timestamp for the new candle.
+         * @returns {object} A new candlestick data point.
+         */
+        function generateNextCandle(lastClose, time) {
+            const open = lastClose;
+            
+            // Generate price change and ensure price doesn't go below a minimum (e.g., $1)
+            let change = breitWignerRandom();
+            let close = Math.max(1, open + change);
+
+            // Add some extra random volatility for the high and low wicks
+            const volatility = Math.abs(change) * (1 + Math.random());
+            const high = Math.max(open, close) + volatility * 0.5;
+            const low = Math.min(open, close) - volatility * 0.5;
+
+            currentPrice = parseFloat(close.toFixed(2));
+
+            return {
+                x: time,
+                y: [
+                    parseFloat(open.toFixed(2)),
+                    parseFloat(high.toFixed(2)),
+                    parseFloat(low.toFixed(2)),
+                    parseFloat(close.toFixed(2))
+                ]
+            };
+        }
+
+        /**
+         * Updates all UI elements with the current state.
+         */
+        function updateUI() {
+            // Format numbers as currency
+            moneyCounter.textContent = money.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            sharesCounter.textContent = shares.toLocaleString();
+            
+            // Calculate and display portfolio value
+            portfolioValue = money + (shares * currentPrice);
+            portfolioValueDisplay.textContent = portfolioValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            
+            // Update the chart with the latest data
+            chart.updateSeries([{
+                data: chartData
+            }]);
+
+            // Enable/disable buttons based on state
+            buyButton.disabled = money < currentPrice;
+            sellButton.disabled = shares === 0;
+        }
+
+        /**
+         * Advances the simulation by one step.
+         */
+        function advanceTime() {
+            const lastClose = chartData.length > 0 ? chartData[chartData.length - 1].y[3] : INITIAL_PRICE;
+            const lastTime = chartData.length > 0 ? new Date(chartData[chartData.length - 1].x).getTime() : new Date().getTime() - 86400000;
+            
+            const newTime = new Date(lastTime + 86400000); // Advance by one day
+            const newCandle = generateNextCandle(lastClose, newTime);
+            
+            chartData.push(newCandle);
+
+            // Keep the chart from getting too crowded
+            if (chartData.length > 150) {
+                chartData.shift();
+            }
+
+            updateUI();
+        }
+
+        /**
+         * Initializes the simulation.
+         */
+        function initialize() {
+            let lastClose = INITIAL_PRICE;
+            let time = new Date().getTime() - (INITIAL_DATA_POINTS * 86400000); // Start 50 days ago
+
+            for (let i = 0; i < INITIAL_DATA_POINTS; i++) {
+                const newCandle = generateNextCandle(lastClose, new Date(time));
+                chartData.push(newCandle);
+                lastClose = newCandle.y[3]; // The close price
+                time += 86400000; // Increment by one day
+            }
+            updateUI();
+        }
+
+        // --- EVENT LISTENERS ---
+
+        buyButton.addEventListener('click', () => {
+            if (money >= currentPrice) {
+                const sharesToBuy = Math.floor(money / currentPrice);
+                const cost = sharesToBuy * currentPrice;
+                
+                shares += sharesToBuy;
+                money -= cost;
+                
+                console.log(`BOUGHT ${sharesToBuy} shares @ $${currentPrice}`);
+                advanceTime();
+            }
+        });
+
+        holdButton.addEventListener('click', () => {
+            console.log('HOLDING');
+            advanceTime();
+        });
+
+        sellButton.addEventListener('click', () => {
+            if (shares > 0) {
+                const earnings = shares * currentPrice;
+                money += earnings;
+                
+                console.log(`SOLD ${shares} shares @ $${currentPrice}`);
+                shares = 0;
+                
+                advanceTime();
+            }
+        });
+
+        // --- START SIMULATION ---
+        initialize();
+
+    </script>
+</body>
+</html>

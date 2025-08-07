@@ -35,29 +35,14 @@
             transform: translateY(0);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .btn-buy {
-            background-color: #10B981; /* Green */
-            color: white;
-        }
-        .btn-buy:hover {
-            background-color: #059669;
-        }
-        .btn-sell {
-            background-color: #EF4444; /* Red */
-            color: white;
-        }
-        .btn-sell:hover {
-            background-color: #DC2626;
-        }
-        .btn-hold {
-            background-color: #3B82F6; /* Blue */
-            color: white;
-        }
-        .btn-hold:hover {
-            background-color: #2563EB;
-        }
+        .btn-buy { background-color: #10B981; color: white; }
+        .btn-buy:hover { background-color: #059669; }
+        .btn-sell { background-color: #EF4444; color: white; }
+        .btn-sell:hover { background-color: #DC2626; }
+        .btn-hold { background-color: #3B82F6; color: white; }
+        .btn-hold:hover { background-color: #2563EB; }
         .btn:disabled {
-            background-color: #4B5563; /* Gray */
+            background-color: #4B5563;
             cursor: not-allowed;
             opacity: 0.7;
             transform: translateY(0);
@@ -66,39 +51,51 @@
         /* Custom tooltip for ApexCharts */
         .apexcharts-tooltip {
             background: #1F2937;
-            color: #F9FAFB;
+            color: #4A4A4A;
             border: 1px solid #374151;
         }
         .apexcharts-tooltip-title {
             background: #374151;
             border-bottom: 1px solid #4B5563;
         }
+        /* Hide number input spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] { -moz-appearance: textfield; }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
 
-    <div class="w-full max-w-6xl mx-auto bg-gray-900 rounded-2xl shadow-2xl p-4 md:p-8 space-y-6">
+    <div class="w-full max-w-7xl mx-auto bg-gray-900 rounded-2xl shadow-2xl p-4 md:p-8 space-y-6">
         
-        <!-- Header Section -->
         <header class="text-center border-b border-gray-700 pb-4">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                Stock Trading Simulator
-            </h1>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Stock Trading Simulator</h1>
             <p class="text-gray-400 mt-2">Buy low, sell high. Can you beat the market?</p>
         </header>
 
-        <!-- Main Content: Chart and Controls -->
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             
-            <!-- Chart Area -->
-            <div id="chart-container" class="lg:col-span-2 bg-gray-800 p-4 rounded-xl shadow-lg">
-                <div id="chart"></div>
+            <div class="lg:col-span-3 space-y-4">
+                <!-- Main Chart Area -->
+                <div id="chart-container" class="bg-gray-800 p-4 rounded-xl shadow-lg">
+                    <div id="chart"></div>
+                </div>
+                <!-- RSI Chart Area -->
+                <div id="rsi-chart-container" class="bg-gray-800 p-4 rounded-xl shadow-lg hidden">
+                    <div id="rsi-chart"></div>
+                </div>
+                <!-- KDJ Chart Area -->
+                <div id="kdj-chart-container" class="bg-gray-800 p-4 rounded-xl shadow-lg hidden">
+                    <div id="kdj-chart"></div>
+                </div>
             </div>
 
             <!-- Controls and Portfolio -->
             <div class="flex flex-col justify-between bg-gray-800 p-6 rounded-xl shadow-lg space-y-6">
                 
-                <!-- Portfolio Display -->
                 <div class="space-y-4 text-center">
                     <div>
                         <h2 class="text-lg font-medium text-gray-400">Cash</h2>
@@ -114,21 +111,39 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="grid grid-cols-3 gap-4">
-                    <button id="buy-button" class="btn btn-buy w-full py-4 rounded-lg text-xl font-bold">
-                        BUY
-                    </button>
-                    <button id="hold-button" class="btn btn-hold w-full py-4 rounded-lg text-xl font-bold">
-                        HOLD
-                    </button>
-                    <button id="sell-button" class="btn btn-sell w-full py-4 rounded-lg text-xl font-bold" disabled>
-                        SELL
-                    </button>
+                    <button id="buy-button" class="btn btn-buy w-full py-3 rounded-lg text-lg font-bold">BUY</button>
+                    <button id="hold-button" class="btn btn-hold w-full py-3 rounded-lg text-lg font-bold">HOLD</button>
+                    <button id="sell-button" class="btn btn-sell w-full py-3 rounded-lg text-lg font-bold" disabled>SELL</button>
+                </div>
+
+                <!-- Indicator Settings -->
+                <div class="space-y-4 border-t border-gray-700 pt-4">
+                    <h3 class="text-xl font-bold text-center text-white">Indicators</h3>
+                    <!-- MA Settings -->
+                    <div class="space-y-2">
+                        <label class="flex items-center justify-between text-gray-300">
+                            <span>Show MA</span>
+                            <input type="checkbox" id="toggle-ma" class="form-checkbox h-5 w-5 text-blue-500 bg-gray-700 border-gray-600 rounded" checked>
+                        </label>
+                        <div id="ma-inputs" class="grid grid-cols-2 gap-2">
+                            <input type="number" id="ma1-period" value="5" class="bg-gray-700 text-white rounded p-1 text-center">
+                            <input type="number" id="ma2-period" value="10" class="bg-gray-700 text-white rounded p-1 text-center">
+                        </div>
+                    </div>
+                    <!-- RSI Settings -->
+                    <label class="flex items-center justify-between text-gray-300">
+                        <span>Show RSI</span>
+                        <input type="checkbox" id="toggle-rsi" class="form-checkbox h-5 w-5 text-blue-500 bg-gray-700 border-gray-600 rounded">
+                    </label>
+                    <!-- KDJ Settings -->
+                    <label class="flex items-center justify-between text-gray-300">
+                        <span>Show KDJ</span>
+                        <input type="checkbox" id="toggle-kdj" class="form-checkbox h-5 w-5 text-blue-500 bg-gray-700 border-gray-600 rounded">
+                    </label>
                 </div>
             </div>
         </main>
-
     </div>
 
     <script>
@@ -136,17 +151,15 @@
         const INITIAL_MONEY = 10000;
         const INITIAL_PRICE = 100;
         const INITIAL_DATA_POINTS = 50;
-        
-        // Breit-Wigner distribution parameters
-        const M = 0; // Center of the peak (mean of change)
-        const GAMMA = 2.5; // Width of the peak (volatility)
+        const M = 0;
+        const GAMMA = 2.5;
 
         // --- STATE VARIABLES ---
         let money = INITIAL_MONEY;
         let shares = 0;
         let currentPrice = INITIAL_PRICE;
-        let portfolioValue = INITIAL_MONEY;
         let chartData = [];
+        let tradeAnnotations = [];
 
         // --- DOM ELEMENTS ---
         const moneyCounter = document.getElementById('money-counter');
@@ -155,204 +168,236 @@
         const buyButton = document.getElementById('buy-button');
         const holdButton = document.getElementById('hold-button');
         const sellButton = document.getElementById('sell-button');
+        // Indicator controls
+        const toggleMA = document.getElementById('toggle-ma');
+        const toggleRSI = document.getElementById('toggle-rsi');
+        const toggleKDJ = document.getElementById('toggle-kdj');
+        const maInputsContainer = document.getElementById('ma-inputs');
+        const ma1PeriodInput = document.getElementById('ma1-period');
+        const ma2PeriodInput = document.getElementById('ma2-period');
+        const rsiChartContainer = document.getElementById('rsi-chart-container');
+        const kdjChartContainer = document.getElementById('kdj-chart-container');
 
-        // --- CHART SETUP (APEXCHARTS) ---
-        const chartOptions = {
-            series: [{
-                name: 'Price',
-                data: []
-            }],
+        // --- CHART SETUP ---
+        const commonChartOptions = {
             chart: {
-                type: 'candlestick',
-                height: 450,
-                animations: {
-                    enabled: true,
-                    easing: 'easeinout',
-                    speed: 500,
-                },
-                toolbar: {
-                    show: true,
-                    tools: {
-                        download: true,
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                    }
-                },
-                foreColor: '#9CA3AF' // Text color for axes
-            },
-            title: {
-                text: 'Stock Price History',
-                align: 'left',
-                style: {
-                    fontSize: '18px',
-                    color: '#F9FAFB'
-                }
-            },
-            xaxis: {
-                type: 'datetime',
-                labels: {
-                    style: {
-                        colors: '#9CA3AF',
-                    },
-                },
-                axisBorder: { show: false },
-                axisTicks: { color: '#374151' }
-            },
-            yaxis: {
-                tooltip: {
-                    enabled: true
-                },
-                labels: {
-                    formatter: (value) => `$${value.toFixed(2)}`,
-                    style: {
-                        colors: '#9CA3AF',
-                    },
-                },
-                axisBorder: { show: false },
-            },
-            grid: {
-                borderColor: '#374151',
-                strokeDashArray: 4
-            },
-            tooltip: {
-                theme: 'dark'
-            },
-            plotOptions: {
-                candlestick: {
-                    colors: {
-                        upward: '#10B981', // Green for price up
-                        downward: '#EF4444' // Red for price down
+                animations: { enabled: false },
+                foreColor: '#9CA3AF',
+                toolbar: { show: false },
+                events: {
+                    // Sync tooltips across charts
+                    mouseMove: (event, chartContext, config) => {
+                        ApexCharts.exec('price-chart', 'updateOptions', { tooltip: { x: { show: true } } }, false, false);
+                        ApexCharts.exec('rsi-chart', 'updateOptions', { tooltip: { x: { show: true } } }, false, false);
+                        ApexCharts.exec('kdj-chart', 'updateOptions', { tooltip: { x: { show: true } } }, false, false);
                     }
                 }
-            }
+            },
+            grid: { borderColor: '#374151', strokeDashArray: 4 },
+            xaxis: { type: 'datetime', axisBorder: { show: false }, axisTicks: { color: '#374151' } },
+            tooltip: { theme: 'dark', x: { show: false } }
         };
 
-        const chart = new ApexCharts(document.querySelector("#chart"), chartOptions);
-        chart.render();
+        const priceChartOptions = {
+            ...commonChartOptions,
+            series: [],
+            chart: { ...commonChartOptions.chart, id: 'price-chart', type: 'candlestick', height: 350, group: 'stock-charts' },
+            title: { text: 'Stock Price', align: 'left', style: { fontSize: '18px', color: '#F9FAFB' } },
+            yaxis: { tooltip: { enabled: true }, labels: { formatter: (val) => `$${val.toFixed(2)}` } },
+            plotOptions: { candlestick: { colors: { upward: '#10B981', downward: '#EF4444' } } },
+            annotations: { points: [] }
+        };
+        const rsiChartOptions = {
+            ...commonChartOptions,
+            series: [{ name: 'RSI', data: [] }],
+            chart: { ...commonChartOptions.chart, id: 'rsi-chart', height: 120, group: 'stock-charts' },
+            title: { text: 'RSI', align: 'left', style: { fontSize: '14px', color: '#F9FAFB' } },
+            yaxis: { min: 0, max: 100, tickAmount: 2 },
+            annotations: { yaxis: [ { y: 30, borderColor: '#EF4444', label: { text: 'Oversold' } }, { y: 70, borderColor: '#10B981', label: { text: 'Overbought' } } ]}
+        };
+        const kdjChartOptions = {
+            ...commonChartOptions,
+            series: [{ name: 'K', data: [] }, { name: 'D', data: [] }, { name: 'J', data: [] }],
+            chart: { ...commonChartOptions.chart, id: 'kdj-chart', height: 120, group: 'stock-charts' },
+            title: { text: 'KDJ', align: 'left', style: { fontSize: '14px', color: '#F9FAFB' } },
+            yaxis: { min: 0, max: 100, tickAmount: 2 },
+            legend: { show: true, position: 'top', horizontalAlign: 'right' },
+            stroke: { width: [2, 2, 2] }
+        };
+
+        const priceChart = new ApexCharts(document.querySelector("#chart"), priceChartOptions);
+        const rsiChart = new ApexCharts(document.querySelector("#rsi-chart"), rsiChartOptions);
+        const kdjChart = new ApexCharts(document.querySelector("#kdj-chart"), kdjChartOptions);
+        priceChart.render();
+        rsiChart.render();
+        kdjChart.render();
+
+        // --- INDICATOR CALCULATIONS ---
+        const calculateSMA = (data, period) => {
+            let sma = [];
+            for (let i = period - 1; i < data.length; i++) {
+                let sum = 0;
+                for (let j = 0; j < period; j++) {
+                    sum += data[i - j].y[3]; // Use close price
+                }
+                sma.push({ x: data[i].x, y: (sum / period).toFixed(2) });
+            }
+            return sma;
+        };
+
+        const calculateRSI = (data, period = 14) => {
+            let rsi = [];
+            let gains = 0, losses = 0;
+            for (let i = 1; i < data.length; i++) {
+                const change = data[i].y[3] - data[i - 1].y[3];
+                if (i < period) {
+                    if (change > 0) gains += change; else losses -= change;
+                } else {
+                    if (i === period) {
+                        gains /= period;
+                        losses /= period;
+                    }
+                    const currentGain = change > 0 ? change : 0;
+                    const currentLoss = change < 0 ? -change : 0;
+                    gains = (gains * (period - 1) + currentGain) / period;
+                    losses = (losses * (period - 1) + currentLoss) / period;
+                }
+                if (i >= period -1) {
+                    const rs = losses === 0 ? 100 : gains / losses;
+                    rsi.push({ x: data[i].x, y: (100 - (100 / (1 + rs))).toFixed(2) });
+                }
+            }
+            return rsi;
+        };
+        
+        const calculateKDJ = (data, n = 9, kPeriod = 3, dPeriod = 3) => {
+            let rsvs = [];
+            let ks = [], ds = [], js = [];
+            for(let i = 0; i < data.length; i++) {
+                const startIndex = Math.max(0, i - n + 1);
+                const periodData = data.slice(startIndex, i + 1);
+                const lowestLow = Math.min(...periodData.map(p => p.y[2]));
+                const highestHigh = Math.max(...periodData.map(p => p.y[1]));
+                const close = data[i].y[3];
+                const rsv = highestHigh === lowestLow ? 50 : ((close - lowestLow) / (highestHigh - lowestLow)) * 100;
+                rsvs.push(rsv);
+
+                if (i > 0) {
+                    const lastK = ks.length > 0 ? ks[ks.length-1].y : 50;
+                    const newK = (2/3) * lastK + (1/3) * rsv;
+                    ks.push({ x: data[i].x, y: newK.toFixed(2) });
+
+                    const lastD = ds.length > 0 ? ds[ds.length-1].y : 50;
+                    const newD = (2/3) * lastD + (1/3) * newK;
+                    ds.push({ x: data[i].x, y: newD.toFixed(2) });
+
+                    const newJ = 3 * newK - 2 * newD;
+                    js.push({ x: data[i].x, y: newJ.toFixed(2) });
+                } else {
+                     ks.push({ x: data[i].x, y: 50 });
+                     ds.push({ x: data[i].x, y: 50 });
+                     js.push({ x: data[i].x, y: 50 });
+                }
+            }
+            return { k: ks, d: ds, j: js };
+        };
+
 
         // --- CORE LOGIC ---
+        const breitWignerRandom = () => M + GAMMA * Math.tan(Math.PI * 0.5 * (Math.random() - 0.5));
 
-        /**
-         * Generates a random number following a Breit-Wigner (Cauchy-Lorentz) distribution.
-         * This creates more "peaky" and volatile price changes than a normal distribution.
-         * @returns {number} A random number representing the price change.
-         */
-        function breitWignerRandom() {
-            // Use the inverse transform sampling method for a Cauchy-Lorentz distribution
-            const u = (Math.random() - 0.5)*0.5; // Uniform random number in [-0.5, 0.5]
-            return M + GAMMA * Math.tan(Math.PI * u);
-        }
-
-        /**
-         * Generates the next candlestick data point.
-         * @param {number} lastClose - The closing price of the previous candle.
-         * @param {Date} time - The timestamp for the new candle.
-         * @returns {object} A new candlestick data point.
-         */
         function generateNextCandle(lastClose, time) {
             const open = lastClose;
-            
-            // Generate price change and ensure price doesn't go below a minimum (e.g., $1)
             let change = breitWignerRandom();
             let close = Math.max(1, open + change);
-
-            // Add some extra random volatility for the high and low wicks
             const volatility = Math.abs(change) * (1 + Math.random());
             const high = Math.max(open, close) + volatility * 0.5;
             const low = Math.min(open, close) - volatility * 0.5;
-
             currentPrice = parseFloat(close.toFixed(2));
-
             return {
                 x: time,
-                y: [
-                    parseFloat(open.toFixed(2)),
-                    parseFloat(high.toFixed(2)),
-                    parseFloat(low.toFixed(2)),
-                    parseFloat(close.toFixed(2))
-                ]
+                y: [open.toFixed(2), high.toFixed(2), low.toFixed(2), close.toFixed(2)].map(parseFloat)
             };
         }
 
-        /**
-         * Updates all UI elements with the current state.
-         */
+        function updateAllCharts() {
+            // Price Chart
+            const series = [{ name: 'Price', type: 'candlestick', data: chartData }];
+            if (toggleMA.checked) {
+                const ma1Period = parseInt(ma1PeriodInput.value) || 5;
+                const ma2Period = parseInt(ma2PeriodInput.value) || 10;
+                series.push({ name: `MA ${ma1Period}`, type: 'line', data: calculateSMA(chartData, ma1Period) });
+                series.push({ name: `MA ${ma2Period}`, type: 'line', data: calculateSMA(chartData, ma2Period) });
+            }
+            priceChart.updateOptions({ series, annotations: { points: tradeAnnotations } });
+            
+            // RSI Chart
+            if (toggleRSI.checked) {
+                rsiChartContainer.classList.remove('hidden');
+                rsiChart.updateSeries([{ data: calculateRSI(chartData) }]);
+            } else {
+                rsiChartContainer.classList.add('hidden');
+            }
+
+            // KDJ Chart
+            if (toggleKDJ.checked) {
+                kdjChartContainer.classList.remove('hidden');
+                const { k, d, j } = calculateKDJ(chartData);
+                kdjChart.updateSeries([{ name: 'K', data: k }, { name: 'D', data: d }, { name: 'J', data: j }]);
+            } else {
+                kdjChartContainer.classList.add('hidden');
+            }
+        }
+
         function updateUI() {
-            // Format numbers as currency
             moneyCounter.textContent = money.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
             sharesCounter.textContent = shares.toLocaleString();
-            
-            // Calculate and display portfolio value
-            portfolioValue = money + (shares * currentPrice);
+            const portfolioValue = money + (shares * currentPrice);
             portfolioValueDisplay.textContent = portfolioValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
             
-            // Update the chart with the latest data
-            chart.updateSeries([{
-                data: chartData
-            }]);
+            updateAllCharts();
 
-            // Enable/disable buttons based on state
             buyButton.disabled = money < currentPrice;
             sellButton.disabled = shares === 0;
         }
 
-        /**
-         * Advances the simulation by one step.
-         */
         function advanceTime() {
             const lastClose = chartData.length > 0 ? chartData[chartData.length - 1].y[3] : INITIAL_PRICE;
-            const lastTime = chartData.length > 0 ? new Date(chartData[chartData.length - 1].x).getTime() : new Date().getTime() - 86400000;
-            
-            const newTime = new Date(lastTime + 86400000); // Advance by one day
+            const lastTime = chartData.length > 0 ? chartData[chartData.length - 1].x : new Date().getTime() - 86400000;
+            const newTime = new Date(lastTime).getTime() + 86400000;
             const newCandle = generateNextCandle(lastClose, newTime);
-            
             chartData.push(newCandle);
-
-            // Keep the chart from getting too crowded
-            if (chartData.length > 150) {
-                chartData.shift();
-            }
-
+            if (chartData.length > 200) chartData.shift();
             updateUI();
         }
 
-        /**
-         * Initializes the simulation.
-         */
         function initialize() {
             let lastClose = INITIAL_PRICE;
-            let time = new Date().getTime() - (INITIAL_DATA_POINTS * 86400000); // Start 50 days ago
-
+            let time = new Date().getTime() - (INITIAL_DATA_POINTS * 86400000);
             for (let i = 0; i < INITIAL_DATA_POINTS; i++) {
                 const newCandle = generateNextCandle(lastClose, new Date(time));
                 chartData.push(newCandle);
-                lastClose = newCandle.y[3]; // The close price
-                time += 86400000; // Increment by one day
+                lastClose = newCandle.y[3];
+                time += 86400000;
             }
             updateUI();
         }
 
         // --- EVENT LISTENERS ---
-
         buyButton.addEventListener('click', () => {
             if (money >= currentPrice) {
                 const sharesToBuy = Math.floor(money / currentPrice);
                 const cost = sharesToBuy * currentPrice;
-                
                 shares += sharesToBuy;
                 money -= cost;
                 
-                console.log(`BOUGHT ${sharesToBuy} shares @ $${currentPrice}`);
+                tradeAnnotations.push({
+                    x: chartData[chartData.length - 1].x, y: currentPrice,
+                    marker: { size: 6, fillColor: '#fff', strokeColor: '#059669', radius: 2 },
+                    label: { text: 'B', borderColor: '#059669', style: { color: '#fff', background: '#059669' } }
+                });
                 advanceTime();
             }
-        });
-
-        holdButton.addEventListener('click', () => {
-            console.log('HOLDING');
-            advanceTime();
         });
 
         sellButton.addEventListener('click', () => {
@@ -360,16 +405,24 @@
                 const earnings = shares * currentPrice;
                 money += earnings;
                 
-                console.log(`SOLD ${shares} shares @ $${currentPrice}`);
+                 tradeAnnotations.push({
+                    x: chartData[chartData.length - 1].x, y: currentPrice,
+                    marker: { size: 6, fillColor: '#fff', strokeColor: '#DC2626', radius: 2 },
+                    label: { text: 'S', borderColor: '#DC2626', style: { color: '#fff', background: '#DC2626' } }
+                });
                 shares = 0;
-                
                 advanceTime();
             }
+        });
+        
+        holdButton.addEventListener('click', () => advanceTime());
+
+        [toggleMA, toggleRSI, toggleKDJ, ma1PeriodInput, ma2PeriodInput].forEach(el => {
+            el.addEventListener('change', updateUI);
         });
 
         // --- START SIMULATION ---
         initialize();
-
     </script>
 </body>
 </html>

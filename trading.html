@@ -51,7 +51,7 @@
         /* Custom tooltip for ApexCharts */
         .apexcharts-tooltip {
             background: #1F2937;
-            color: #4A4A4A;
+            color: #F9FAFB; /* Improved text color for readability */
             border: 1px solid #374151;
         }
         .apexcharts-tooltip-title {
@@ -160,6 +160,8 @@
         let currentPrice = INITIAL_PRICE;
         let chartData = [];
         let tradeAnnotations = [];
+        let lastXAxisMin = undefined; // To preserve zoom
+        let lastXAxisMax = undefined; // To preserve zoom
 
         // --- DOM ELEMENTS ---
         const moneyCounter = document.getElementById('money-counter');
@@ -168,11 +170,9 @@
         const buyButton = document.getElementById('buy-button');
         const holdButton = document.getElementById('hold-button');
         const sellButton = document.getElementById('sell-button');
-        // Indicator controls
         const toggleMA = document.getElementById('toggle-ma');
         const toggleRSI = document.getElementById('toggle-rsi');
         const toggleKDJ = document.getElementById('toggle-kdj');
-        const maInputsContainer = document.getElementById('ma-inputs');
         const ma1PeriodInput = document.getElementById('ma1-period');
         const ma2PeriodInput = document.getElementById('ma2-period');
         const rsiChartContainer = document.getElementById('rsi-chart-container');
@@ -183,13 +183,14 @@
             chart: {
                 animations: { enabled: false },
                 foreColor: '#9CA3AF',
-                toolbar: { show: false },
                 events: {
-                    // Sync tooltips across charts
                     mouseMove: (event, chartContext, config) => {
-                        ApexCharts.exec('price-chart', 'updateOptions', { tooltip: { x: { show: true } } }, false, false);
-                        ApexCharts.exec('rsi-chart', 'updateOptions', { tooltip: { x: { show: true } } }, false, false);
-                        ApexCharts.exec('kdj-chart', 'updateOptions', { tooltip: { x: { show: true } } }, false, false);
+                        // Sync tooltips across charts
+                        if (config.seriesIndex !== -1) {
+                            ApexCharts.exec('price-chart', 'updateOptions', { tooltip: { x: { show: true } } }, false, false);
+                            ApexCharts.exec('rsi-chart', 'updateOptions', { tooltip: { x: { show: true } } }, false, false);
+                            ApexCharts.exec('kdj-chart', 'updateOptions', { tooltip: { x: { show: true } } }, false, false);
+                        }
                     }
                 }
             },
@@ -201,7 +202,33 @@
         const priceChartOptions = {
             ...commonChartOptions,
             series: [],
-            chart: { ...commonChartOptions.chart, id: 'price-chart', type: 'candlestick', height: 430, group: 'stock-charts' },
+            chart: { 
+                ...commonChartOptions.chart, 
+                id: 'price-chart', 
+                type: 'candlestick', 
+                height: 350, 
+                group: 'stock-charts',
+                toolbar: { 
+                    show: true,
+                    tools: { download: false, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true },
+                    autoSelected: 'zoom'
+                },
+                events: {
+                    ...commonChartOptions.chart.events,
+                    zoomed: (chartContext, { xaxis }) => {
+                        lastXAxisMin = xaxis.min;
+                        lastXAxisMax = xaxis.max;
+                    },
+                    scrolled: (chartContext, { xaxis }) => {
+                        lastXAxisMin = xaxis.min;
+                        lastXAxisMax = xaxis.max;
+                    },
+                    beforeReset: () => {
+                        lastXAxisMin = undefined;
+                        lastXAxisMax = undefined;
+                    }
+                }
+            },
             title: { text: 'Stock Price', align: 'left', style: { fontSize: '18px', color: '#F9FAFB' } },
             yaxis: { tooltip: { enabled: true }, labels: { formatter: (val) => `$${val.toFixed(2)}` } },
             plotOptions: { candlestick: { colors: { upward: '#10B981', downward: '#EF4444' } } },
@@ -210,7 +237,7 @@
         const rsiChartOptions = {
             ...commonChartOptions,
             series: [{ name: 'RSI', data: [] }],
-            chart: { ...commonChartOptions.chart, id: 'rsi-chart', height: 200, group: 'stock-charts' },
+            chart: { ...commonChartOptions.chart, id: 'rsi-chart', height: 120, group: 'stock-charts', toolbar: { show: false } },
             title: { text: 'RSI', align: 'left', style: { fontSize: '14px', color: '#F9FAFB' } },
             yaxis: { min: 0, max: 100, tickAmount: 2 },
             annotations: { yaxis: [ { y: 30, borderColor: '#EF4444', label: { text: 'Oversold' } }, { y: 70, borderColor: '#10B981', label: { text: 'Overbought' } } ]}
@@ -218,7 +245,7 @@
         const kdjChartOptions = {
             ...commonChartOptions,
             series: [{ name: 'K', data: [] }, { name: 'D', data: [] }, { name: 'J', data: [] }],
-            chart: { ...commonChartOptions.chart, id: 'kdj-chart', height: 200, group: 'stock-charts' },
+            chart: { ...commonChartOptions.chart, id: 'kdj-chart', height: 120, group: 'stock-charts', toolbar: { show: false } },
             title: { text: 'KDJ', align: 'left', style: { fontSize: '14px', color: '#F9FAFB' } },
             yaxis: { min: 0, max: 100, tickAmount: 2 },
             legend: { show: true, position: 'top', horizontalAlign: 'right' },
@@ -240,7 +267,7 @@
                 for (let j = 0; j < period; j++) {
                     sum += data[i - j].y[3]; // Use close price
                 }
-                sma.push({ x: data[i].x, y: (sum / period).toFixed(2) });
+                sma.push({ x: data[i].x, y: parseFloat((sum / period).toFixed(2)) });
             }
             return sma;
         };
@@ -264,14 +291,13 @@
                 }
                 if (i >= period -1) {
                     const rs = losses === 0 ? 100 : gains / losses;
-                    rsi.push({ x: data[i].x, y: (100 - (100 / (1 + rs))).toFixed(2) });
+                    rsi.push({ x: data[i].x, y: parseFloat((100 - (100 / (1 + rs))).toFixed(2)) });
                 }
             }
             return rsi;
         };
         
-        const calculateKDJ = (data, n = 9, kPeriod = 3, dPeriod = 3) => {
-            let rsvs = [];
+        const calculateKDJ = (data, n = 9) => {
             let ks = [], ds = [], js = [];
             for(let i = 0; i < data.length; i++) {
                 const startIndex = Math.max(0, i - n + 1);
@@ -280,28 +306,20 @@
                 const highestHigh = Math.max(...periodData.map(p => p.y[1]));
                 const close = data[i].y[3];
                 const rsv = highestHigh === lowestLow ? 50 : ((close - lowestLow) / (highestHigh - lowestLow)) * 100;
-                rsvs.push(rsv);
 
-                if (i > 0) {
-                    const lastK = ks.length > 0 ? ks[ks.length-1].y : 50;
-                    const newK = (2/3) * lastK + (1/3) * rsv;
-                    ks.push({ x: data[i].x, y: newK.toFixed(2) });
+                const lastK = i > 0 ? ks[ks.length-1].y : 50;
+                const newK = (2/3) * lastK + (1/3) * rsv;
+                ks.push({ x: data[i].x, y: parseFloat(newK.toFixed(2)) });
 
-                    const lastD = ds.length > 0 ? ds[ds.length-1].y : 50;
-                    const newD = (2/3) * lastD + (1/3) * newK;
-                    ds.push({ x: data[i].x, y: newD.toFixed(2) });
+                const lastD = i > 0 ? ds[ds.length-1].y : 50;
+                const newD = (2/3) * lastD + (1/3) * newK;
+                ds.push({ x: data[i].x, y: parseFloat(newD.toFixed(2)) });
 
-                    const newJ = 3 * newK - 2 * newD;
-                    js.push({ x: data[i].x, y: newJ.toFixed(2) });
-                } else {
-                     ks.push({ x: data[i].x, y: 50 });
-                     ds.push({ x: data[i].x, y: 50 });
-                     js.push({ x: data[i].x, y: 50 });
-                }
+                const newJ = 3 * newK - 2 * newD;
+                js.push({ x: data[i].x, y: parseFloat(newJ.toFixed(2)) });
             }
             return { k: ks, d: ds, j: js };
         };
-
 
         // --- CORE LOGIC ---
         const breitWignerRandom = () => M + GAMMA * Math.tan(Math.PI * 0.5 * (Math.random() - 0.5));
@@ -322,30 +340,35 @@
 
         function updateAllCharts() {
             // Price Chart
-            const series = [{ name: 'Price', type: 'candlestick', data: chartData }];
+            const priceSeries = [{ name: 'Price', type: 'candlestick', data: chartData }];
             if (toggleMA.checked) {
                 const ma1Period = parseInt(ma1PeriodInput.value) || 5;
                 const ma2Period = parseInt(ma2PeriodInput.value) || 10;
-                series.push({ name: `MA ${ma1Period}`, type: 'line', data: calculateSMA(chartData, ma1Period) });
-                series.push({ name: `MA ${ma2Period}`, type: 'line', data: calculateSMA(chartData, ma2Period) });
+                priceSeries.push({ name: `MA ${ma1Period}`, type: 'line', data: calculateSMA(chartData, ma1Period) });
+                priceSeries.push({ name: `MA ${ma2Period}`, type: 'line', data: calculateSMA(chartData, ma2Period) });
             }
-            priceChart.updateOptions({ series, annotations: { points: tradeAnnotations } });
+            
+            const newPriceChartOptions = {
+                series: priceSeries,
+                annotations: { points: tradeAnnotations },
+                xaxis: {
+                    type: 'datetime',
+                    min: lastXAxisMin, // Apply the stored zoom/pan
+                    max: lastXAxisMax
+                }
+            };
+
+            priceChart.updateOptions(newPriceChartOptions);
             
             // RSI Chart
-            if (toggleRSI.checked) {
-                rsiChartContainer.classList.remove('hidden');
-                rsiChart.updateSeries([{ data: calculateRSI(chartData) }]);
-            } else {
-                rsiChartContainer.classList.add('hidden');
-            }
+            rsiChartContainer.classList.toggle('hidden', !toggleRSI.checked);
+            if (toggleRSI.checked) rsiChart.updateSeries([{ data: calculateRSI(chartData) }]);
 
             // KDJ Chart
+            kdjChartContainer.classList.toggle('hidden', !toggleKDJ.checked);
             if (toggleKDJ.checked) {
-                kdjChartContainer.classList.remove('hidden');
                 const { k, d, j } = calculateKDJ(chartData);
                 kdjChart.updateSeries([{ name: 'K', data: k }, { name: 'D', data: d }, { name: 'J', data: j }]);
-            } else {
-                kdjChartContainer.classList.add('hidden');
             }
         }
 
@@ -367,7 +390,17 @@
             const newTime = new Date(lastTime).getTime() + 86400000;
             const newCandle = generateNextCandle(lastClose, newTime);
             chartData.push(newCandle);
-            if (chartData.length > 200) chartData.shift();
+            
+            // If zoomed, slide the view to the right to show the new candle
+            if (lastXAxisMin !== undefined && lastXAxisMax !== undefined) {
+                const range = lastXAxisMax - lastXAxisMin; // Get current zoom duration
+                lastXAxisMax = newCandle.x; // Set the new end time
+                lastXAxisMin = lastXAxisMax - range; // Set the new start time
+            }
+
+            if (chartData.length > 200) {
+                chartData.shift();
+            }
             updateUI();
         }
 
@@ -384,18 +417,23 @@
         }
 
         // --- EVENT LISTENERS ---
+        function addTradeAnnotation(type) {
+            const color = type === 'B' ? '#059669' : '#DC2626';
+            tradeAnnotations.push({
+                x: chartData[chartData.length - 1].x, 
+                y: currentPrice,
+                marker: { size: 6, fillColor: '#fff', strokeColor: color, radius: 2 },
+                label: { text: type, borderColor: color, style: { color: '#fff', background: color } }
+            });
+        }
+
         buyButton.addEventListener('click', () => {
             if (money >= currentPrice) {
                 const sharesToBuy = Math.floor(money / currentPrice);
                 const cost = sharesToBuy * currentPrice;
                 shares += sharesToBuy;
                 money -= cost;
-                
-                tradeAnnotations.push({
-                    x: chartData[chartData.length - 1].x, y: currentPrice,
-                    marker: { size: 6, fillColor: '#fff', strokeColor: '#059669', radius: 2 },
-                    label: { text: 'B', borderColor: '#059669', style: { color: '#fff', background: '#059669' } }
-                });
+                addTradeAnnotation('B');
                 advanceTime();
             }
         });
@@ -404,13 +442,8 @@
             if (shares > 0) {
                 const earnings = shares * currentPrice;
                 money += earnings;
-                
-                 tradeAnnotations.push({
-                    x: chartData[chartData.length - 1].x, y: currentPrice,
-                    marker: { size: 6, fillColor: '#fff', strokeColor: '#DC2626', radius: 2 },
-                    label: { text: 'S', borderColor: '#DC2626', style: { color: '#fff', background: '#DC2626' } }
-                });
                 shares = 0;
+                addTradeAnnotation('S');
                 advanceTime();
             }
         });

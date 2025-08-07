@@ -73,7 +73,7 @@
         
         <header class="text-center border-b border-gray-700 pb-4">
             <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Stock Trading Simulator</h1>
-            <p class="text-gray-400 mt-2">Buy low, sell high. Can you beat the market?</p>
+            <p class="text-gray-400 mt-2">Buy low, sell high. Can you beat the market? Subscribe @喵财经MeowFin on YouTube!</p>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -201,7 +201,7 @@
         const priceChartOptions = {
             ...commonChartOptions,
             series: [],
-            chart: { ...commonChartOptions.chart, id: 'price-chart', type: 'candlestick', height: 350, group: 'stock-charts' },
+            chart: { ...commonChartOptions.chart, id: 'price-chart', type: 'candlestick', height: 430, group: 'stock-charts' },
             title: { text: 'Stock Price', align: 'left', style: { fontSize: '18px', color: '#F9FAFB' } },
             yaxis: { tooltip: { enabled: true }, labels: { formatter: (val) => `$${val.toFixed(2)}` } },
             plotOptions: { candlestick: { colors: { upward: '#10B981', downward: '#EF4444' } } },
@@ -210,7 +210,7 @@
         const rsiChartOptions = {
             ...commonChartOptions,
             series: [{ name: 'RSI', data: [] }],
-            chart: { ...commonChartOptions.chart, id: 'rsi-chart', height: 120, group: 'stock-charts' },
+            chart: { ...commonChartOptions.chart, id: 'rsi-chart', height: 200, group: 'stock-charts' },
             title: { text: 'RSI', align: 'left', style: { fontSize: '14px', color: '#F9FAFB' } },
             yaxis: { min: 0, max: 100, tickAmount: 2 },
             annotations: { yaxis: [ { y: 30, borderColor: '#EF4444', label: { text: 'Oversold' } }, { y: 70, borderColor: '#10B981', label: { text: 'Overbought' } } ]}
@@ -218,7 +218,7 @@
         const kdjChartOptions = {
             ...commonChartOptions,
             series: [{ name: 'K', data: [] }, { name: 'D', data: [] }, { name: 'J', data: [] }],
-            chart: { ...commonChartOptions.chart, id: 'kdj-chart', height: 120, group: 'stock-charts' },
+            chart: { ...commonChartOptions.chart, id: 'kdj-chart', height: 200, group: 'stock-charts' },
             title: { text: 'KDJ', align: 'left', style: { fontSize: '14px', color: '#F9FAFB' } },
             yaxis: { min: 0, max: 100, tickAmount: 2 },
             legend: { show: true, position: 'top', horizontalAlign: 'right' },

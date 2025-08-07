@@ -322,15 +322,20 @@
         };
 
         // --- CORE LOGIC ---
-        const breitWignerRandom = () => M + GAMMA * Math.tan(Math.PI * 0.5 * (Math.random() - 0.5));
+        const breitWignerRandom = () => M + GAMMA * Math.tan(Math.PI * 0.55 * (Math.random() - 0.5));
 
         function generateNextCandle(lastClose, time) {
             const open = lastClose;
             let change = breitWignerRandom();
             let close = Math.max(1, open + change);
-            const volatility = Math.abs(change) * (1 + Math.random());
-            const high = Math.max(open, close) + volatility * 0.5;
-            const low = Math.min(open, close) - volatility * 0.5;
+            
+            // Create asymmetrical upper and lower wicks for more realistic candles
+            const upperShadow = Math.abs(change) * Math.random() * 1.5;
+            const lowerShadow = Math.abs(change) * Math.random() * 1.5;
+
+            const high = Math.max(open, close) + upperShadow;
+            const low = Math.max(1, Math.min(open, close) - lowerShadow); // Ensure low doesn't go below 1
+
             currentPrice = parseFloat(close.toFixed(2));
             return {
                 x: time,

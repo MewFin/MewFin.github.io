@@ -206,7 +206,7 @@
                 ...commonChartOptions.chart, 
                 id: 'price-chart', 
                 type: 'candlestick', 
-                height: 350, 
+                height: 430, 
                 group: 'stock-charts',
                 toolbar: { 
                     show: true,
@@ -237,7 +237,7 @@
         const rsiChartOptions = {
             ...commonChartOptions,
             series: [{ name: 'RSI', data: [] }],
-            chart: { ...commonChartOptions.chart, id: 'rsi-chart', height: 120, group: 'stock-charts', toolbar: { show: false } },
+            chart: { ...commonChartOptions.chart, id: 'rsi-chart', height: 200, group: 'stock-charts', toolbar: { show: false } },
             title: { text: 'RSI', align: 'left', style: { fontSize: '14px', color: '#F9FAFB' } },
             yaxis: { min: 0, max: 100, tickAmount: 2 },
             annotations: { yaxis: [ { y: 30, borderColor: '#EF4444', label: { text: 'Oversold' } }, { y: 70, borderColor: '#10B981', label: { text: 'Overbought' } } ]}
@@ -245,7 +245,7 @@
         const kdjChartOptions = {
             ...commonChartOptions,
             series: [{ name: 'K', data: [] }, { name: 'D', data: [] }, { name: 'J', data: [] }],
-            chart: { ...commonChartOptions.chart, id: 'kdj-chart', height: 120, group: 'stock-charts', toolbar: { show: false } },
+            chart: { ...commonChartOptions.chart, id: 'kdj-chart', height: 200, group: 'stock-charts', toolbar: { show: false } },
             title: { text: 'KDJ', align: 'left', style: { fontSize: '14px', color: '#F9FAFB' } },
             yaxis: { min: 0, max: 100, tickAmount: 2 },
             legend: { show: true, position: 'top', horizontalAlign: 'right' },

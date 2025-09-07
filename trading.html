@@ -330,7 +330,7 @@
             let change = breitWignerRandom();
                     // 如果处于买入后的偏置期，增加上涨概率
             if (bullBiasSteps > 0) {
-                const bias = Math.abs(breitWignerRandom()) * 0.3; // 你可以调整0.3强度
+                const bias = Math.abs(breitWignerRandom()) * 0.003; // 你可以调整0.3强度
                 change += bias;
                 bullBiasSteps--; // 用掉一步
             }
